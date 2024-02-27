@@ -10,14 +10,18 @@ export const create = (gl, {
 }) => {
   const M = mat4.create();
   const MV = mat4.create();
+  const geo = { dirty: {} };
 
   let ibo;
   if (indices) {
     ibo = gl.createBuffer();
+
+    geo.indices = new Uint16Array(indices);
+    geo.dirty.indices = true;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
     gl.bufferData(
       gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(indices),
+      geo.indices,
       gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
   }
@@ -25,10 +29,13 @@ export const create = (gl, {
   let vbo;
   if (vertices) {
     vbo = gl.createBuffer();
+
+    geo.vertices = new Float32Array(vertices);
+    geo.dirty.vertices = true;
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bufferData(
       gl.ARRAY_BUFFER,
-      new Float32Array(vertices),
+      geo.vertices,
       gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
@@ -36,10 +43,13 @@ export const create = (gl, {
   let cbo;
   if (colors) {
     cbo = gl.createBuffer();
+
+    geo.colors = new Float32Array(colors);
+    geo.dirty.colors = true;
     gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
     gl.bufferData(
       gl.ARRAY_BUFFER,
-      new Float32Array(colors),
+      geo.colors,
       gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
@@ -47,17 +57,15 @@ export const create = (gl, {
   let uvbo;
   if (uvs) {
     uvbo = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, uvbo);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array(uvs),
-      gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    geo.uvs = new Float32Array(uvs);
+    geo.dirty.uvs = true;
   }
 
   const { draw = [] } = plugins;
   const node = {
     name, program, position, rotation, scale, textures, update,
+    geo,
     transform: M,
     children: [],
     draw: (params) => {
@@ -99,6 +107,14 @@ export const create = (gl, {
           const pointer = program.attributes.uv;
           if (pointer !== -1) {
             gl.bindBuffer(gl.ARRAY_BUFFER, uvbo);
+            if (geo.dirty.uvs) {
+              geo.dirty.uvs = false;
+              gl.bufferData(
+                gl.ARRAY_BUFFER,
+                geo.uvs,
+                gl.STATIC_DRAW);
+            }
+            
             gl.vertexAttribPointer(pointer, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(pointer);
           }
