@@ -12,8 +12,5 @@ out vec4 fragColor;
 void main(void) {
   fragColor = texture(
     uDiffuse,
-    vec2(
-      vTextureCoord.x + uScroll.x,
-      vTextureCoord.y + uScroll.y
-    ));
+    vTextureCoord);
 }

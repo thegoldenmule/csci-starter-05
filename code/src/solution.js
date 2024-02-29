@@ -20,47 +20,59 @@ window.init = async (canvas) => {
   // context
   gl = canvas.getContext('webgl2');
   gl.clearColor(clearColor.r, clearColor.g, clearColor.b, 1.0);
-  gl.enable(gl.DEPTH_TEST);
-  gl.depthFunc(gl.LEQUAL);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  
+  // depth
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  gl.clearDepth(100);
+
+  // alpha
+  //gl.enable(gl.BLEND);
+  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+  // culling
+  //gl.enable(gl.FACE_CULLING);
 
   // shaders
   programs.default = await loadShader(gl, {
     uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
-  const uScroll = vec2.create();
-  const plane = create(gl, {
+  const cube = create(gl, {
     program: programs.default,
-    ...geo.quad(),
-    rotation: quat.fromEuler(quat.create(), -90, 0, 0),
-    scale: vec3.fromValues(1, 1, 1),
+    ...geo.cubeComplex(),
+    position: vec3.fromValues(0, -1, -3),
+    rotation: quat.fromEuler(quat.create(), 0, -45, 0),
     attributes: [
       { key: 'diffuse', name: 'aTextureCoord' },
     ],
     plugins: {
-      draw: [
-        () => {
-          // change uScroll uniform
-          const diff = 0.001;
-          vec2.add(uScroll, uScroll, [diff, diff]);
-          gl.uniform2fv(programs.default.uniforms.uScroll, uScroll);
-        },
-      ],
+      draw: [() => {
+        
+      }],
     },
   });
+  cube.textures.diffuse = await loadTextureAsync(gl,
+    {
+      path: 'assets/texture.png',
+    });
+  scene.push(cube);
 
-  const texture = await loadTextureAsync(gl,
-  {
-    path: 'assets/ocean.jpg',
+  const quad = create(gl, {
+    program: programs.default,
+    ...geo.quad(),
+    rotation: quat.fromEuler(quat.create(), -90, 0, 0),
+    position: vec3.fromValues(0, 0, -4),
+    attributes: [
+      { key: 'diffuse', name: 'aTextureCoord' },
+    ],
   });
-  console.log('Loaded!');
-
-  plane.textures.diffuse = texture;
-
-  scene.push(plane);
+  quad.textures.diffuse = await loadTextureAsync(gl,
+    {
+      path: 'assets/ocean.jpg',
+    });
+  //scene.push(quad);
 };
 
 window.loop = (dt, canvas) => {
