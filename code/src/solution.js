@@ -7,7 +7,7 @@ import { loadTextureAsync } from "./textures.js";
 /** @type {WebGLRenderingContext} */
 let gl;
 
-const { mat4, vec3, quat } = glMatrix;
+const { mat4, vec2, vec3, quat } = glMatrix;
 const clearColor = {
   r: 25/255,
   g: 25/255,
@@ -28,9 +28,10 @@ window.init = async (canvas) => {
 
   // shaders
   programs.default = await loadShader(gl, {
-    //
+    uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
+  const uScroll = vec2.create();
   const plane = create(gl, {
     program: programs.default,
     ...geo.quad(),
@@ -39,55 +40,25 @@ window.init = async (canvas) => {
     attributes: [
       { key: 'diffuse', name: 'aTextureCoord' },
     ],
+    plugins: {
+      draw: [
+        () => {
+          // change uScroll uniform
+          const diff = 0.001;
+          vec2.add(uScroll, uScroll, [diff, diff]);
+          gl.uniform2fv(programs.default.uniforms.uScroll, uScroll);
+        },
+      ],
+    },
   });
 
   const texture = await loadTextureAsync(gl,
   {
-    path: 'assets/ss-wyvern.png',
+    path: 'assets/ocean.jpg',
   });
   console.log('Loaded!');
 
   plane.textures.diffuse = texture;
-
-  const def = {
-    rows: 8,
-    cols: 8,
-  };
-
-  const updateUvs = (row, col) => {
-    const uvs = plane.geo.uvs;
-
-    const u_width = 1 / def.cols;
-    const v_height = 1 / def.rows;
-
-    const u = col * u_width;
-    const v = row * v_height;
-
-    /**
-      1, 1,
-      0, 1,
-      0, 0,
-      1, 0,
-    */
-    uvs[0] = u + u_width; uvs[1] = v + v_height;
-    uvs[2] = u; uvs[3] = v + v_height;
-    uvs[4] = u; uvs[5] = v;
-    uvs[6] = u + u_width; uvs[7] = v;
-
-    plane.geo.dirty.uvs = true;
-  };
-
-  plane.update = (dt) => {
-    const nowMs = Date.now();
-    const animationSpeedMs = 800;
-    const msPerFrame = animationSpeedMs / def.cols;
-
-    const i = Math.floor((nowMs / msPerFrame) % def.cols);
-    const j = 0;
-    updateUvs(j, i);
-  };
-
-  updateUvs(0, 0);
 
   scene.push(plane);
 };
