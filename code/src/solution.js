@@ -28,8 +28,10 @@ window.init = async (canvas) => {
   gl.clearDepth(100);
 
   // alpha
-  //gl.enable(gl.BLEND);
-  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // interpolative blending
+  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // additive blending
+  //gl.blendFunc(gl.DST_COLOR, gl.ZERO); // multiplicative blending
 
   // culling
   //gl.enable(gl.FACE_CULLING);
@@ -63,16 +65,16 @@ window.init = async (canvas) => {
     program: programs.default,
     ...geo.quad(),
     rotation: quat.fromEuler(quat.create(), -90, 0, 0),
-    position: vec3.fromValues(0, 0, -4),
+    position: vec3.fromValues(0, 0, -1),
     attributes: [
       { key: 'diffuse', name: 'aTextureCoord' },
     ],
   });
   quad.textures.diffuse = await loadTextureAsync(gl,
     {
-      path: 'assets/ocean.jpg',
+      path: 'assets/pika.png',
     });
-  //scene.push(quad);
+  scene.push(quad);
 };
 
 window.loop = (dt, canvas) => {
