@@ -3,6 +3,7 @@ import geo from "./geo.js";
 import { create } from "./node.js";
 import { loadShader } from "./shaders.js";
 import { loadTextureAsync } from "./textures.js";
+import { calculateNormals } from "./util.js";
 
 /** @type {WebGLRenderingContext} */
 let gl;
@@ -41,9 +42,14 @@ window.init = async (canvas) => {
     uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
+  const { indices, vertices, uvs, colors, } = geo.cubeComplex();
+  const normals = calculateNormals(vertices, indices);
+
   const cube = create(gl, {
     program: programs.default,
-    ...geo.cubeComplex(),
+    indices, vertices, uvs,
+    normals,
+    colors: normals,
     position: vec3.fromValues(0, -1, -3),
     rotation: quat.fromEuler(quat.create(), 0, -45, 0),
     attributes: [
@@ -60,21 +66,6 @@ window.init = async (canvas) => {
       path: 'assets/texture.png',
     });
   scene.push(cube);
-
-  const quad = create(gl, {
-    program: programs.default,
-    ...geo.quad(),
-    rotation: quat.fromEuler(quat.create(), -90, 0, 0),
-    position: vec3.fromValues(0, 0, -1),
-    attributes: [
-      { key: 'diffuse', name: 'aTextureCoord' },
-    ],
-  });
-  quad.textures.diffuse = await loadTextureAsync(gl,
-    {
-      path: 'assets/pika.png',
-    });
-  scene.push(quad);
 };
 
 window.loop = (dt, canvas) => {

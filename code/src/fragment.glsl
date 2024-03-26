@@ -10,7 +10,5 @@ in vec2 vTextureCoord;
 out vec4 fragColor;
 
 void main(void) {
-  fragColor = texture(
-    uDiffuse,
-    vTextureCoord);
+  fragColor = vec4(vColor, 1.0);
 }

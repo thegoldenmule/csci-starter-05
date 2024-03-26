@@ -6,7 +6,7 @@ export const create = (gl, {
   scale = vec3.fromValues(1, 1, 1),
   rotation = quat.create(),
   update,
-  indices, vertices, uvs, colors,
+  indices, vertices, uvs, colors, normals,
 }) => {
   const M = mat4.create();
   const MV = mat4.create();
@@ -60,6 +60,20 @@ export const create = (gl, {
 
     geo.uvs = new Float32Array(uvs);
     geo.dirty.uvs = true;
+  }
+
+  let nbo;
+  if (normals) {
+    nbo = gl.createBuffer();
+
+    geo.normals = new Float32Array(normals);
+    geo.dirty.normals = true;
+    gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      geo.normals,
+      gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
   const { draw = [] } = plugins;
