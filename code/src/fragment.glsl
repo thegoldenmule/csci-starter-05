@@ -7,8 +7,17 @@ uniform vec2 uScroll;
 in vec3 vColor;
 in vec3 vNormal;
 in vec2 vTextureCoord;
+in vec3 vEyeVector;
 
 out vec4 fragColor;
+
+// lighting
+const int MAX_LIGHTS = 10;
+uniform int uLightsCount;
+uniform vec3 uLightsPosition[MAX_LIGHTS];
+uniform vec4 uLightsAmbient[MAX_LIGHTS];
+uniform vec4 uLightsDiffuse[MAX_LIGHTS];
+uniform vec4 uLightsSpecular[MAX_LIGHTS];
 
 void main(void) {
   vec3 ambientColor = vec3(0.5, 0.5, 0);
@@ -20,7 +29,7 @@ void main(void) {
   float posLightIntensity = 0.8;
   vec3 posLightComponent = posLightColor * posLightIntensity * max(0.0, dot(vNormal, posLightDirection));
 
-  vec3 eyeVector = normalize(vec3(0, 0, 1));
+  vec3 eyeVector = normalize(vEyeVector);
   vec3 reflectionVector = reflect(-posLightDirection, vNormal);
   vec3 specularColor = vec3(1, 1, 1);
   float specularIntensity = 0.5;
