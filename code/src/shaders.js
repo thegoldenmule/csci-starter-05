@@ -17,6 +17,7 @@ export const loadShader = async (gl, { v = 'vertex', f = 'fragment', attributes 
     position: gl.getAttribLocation(program, 'aVertexPosition'),
     uv: gl.getAttribLocation(program, 'aTextureCoord'),
     color: gl.getAttribLocation(program, 'aVertexColor'),
+    normal: gl.getAttribLocation(program, 'aVertexNormal'),
   };
 
   for (const { key, name, } of attributes) {
@@ -26,6 +27,7 @@ export const loadShader = async (gl, { v = 'vertex', f = 'fragment', attributes 
   program.uniforms = {
     P: gl.getUniformLocation(program, "uProjectionMatrix"),
     MV: gl.getUniformLocation(program, "uModelViewMatrix"),
+    K: gl.getUniformLocation(program, "uNormalMatrix"),
     Color: gl.getUniformLocation(program, "uColor"),
     Diffuse: gl.getUniformLocation(program, "uDiffuse"),
   };

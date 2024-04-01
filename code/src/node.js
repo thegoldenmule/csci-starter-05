@@ -10,6 +10,7 @@ export const create = (gl, {
 }) => {
   const M = mat4.create();
   const MV = mat4.create();
+  const K = mat4.create();
   const geo = { dirty: {} };
 
   let ibo;
@@ -102,11 +103,27 @@ export const create = (gl, {
         mat4.multiply(MV, V, M);
         gl.uniformMatrix4fv(program.uniforms.MV, false, MV);
 
+        // prep K matrix
+        if (nbo) {
+          mat4.invert(K, MV);
+          mat4.transpose(K, K);
+          gl.uniformMatrix4fv(program.uniforms.K, false, K);
+        }
+
         // attributes
         const pointer = program.attributes.position;
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
         gl.vertexAttribPointer(pointer, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(pointer);
+
+        if (nbo) {
+          const pointer = program.attributes.normal;
+          if (pointer !== -1) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+            gl.vertexAttribPointer(pointer, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(pointer);
+          }
+        }
 
         if (cbo) {
           const pointer = program.attributes.color;

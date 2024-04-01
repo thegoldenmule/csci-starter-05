@@ -42,14 +42,13 @@ window.init = async (canvas) => {
     uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
-  const { indices, vertices, uvs, colors, } = geo.cubeComplex();
+  const { indices, vertices, uvs, colors, } = geo.sphere(3);
   const normals = calculateNormals(vertices, indices);
 
   const cube = create(gl, {
     program: programs.default,
     indices, vertices, uvs,
-    normals,
-    colors: normals,
+    normals, colors,
     position: vec3.fromValues(0, -1, -3),
     rotation: quat.fromEuler(quat.create(), 0, -45, 0),
     attributes: [
@@ -65,6 +64,10 @@ window.init = async (canvas) => {
     {
       path: 'assets/texture.png',
     });
+  cube.update = (dt) => {
+    quat.rotateY(cube.rotation, cube.rotation, 0.001 * dt);
+    //quat.rotateX(cube.rotation, cube.rotation, 0.001 * dt);
+  };
   scene.push(cube);
 };
 
