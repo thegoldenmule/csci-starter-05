@@ -33,10 +33,9 @@ export const loadShader = async (gl, { v = 'vertex', f = 'fragment', attributes 
     
     // forward-lighting
     LightsCount: gl.getUniformLocation(program, "uLightsCount"),
-    LightsPosition: gl.getUniformLocation(program, "uLightsPosition"),
     LightsAmbient: gl.getUniformLocation(program, "uLightsAmbient"),
-    LightsDiffuse: gl.getUniformLocation(program, "uLightsDiffuse"),
-    LightsSpecular: gl.getUniformLocation(program, "uLightsSpecular"),
+    LightsPosition: gl.getUniformLocation(program, "uLightsPosition"),
+    LightsColor: gl.getUniformLocation(program, "uLightsColor"),
 
   };
 

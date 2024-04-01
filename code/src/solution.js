@@ -1,5 +1,6 @@
 
 import geo from "./geo.js";
+import { ambient, positional, prepare } from "./lighting.js";
 import { create } from "./node.js";
 import { loadShader } from "./shaders.js";
 import { loadTextureAsync } from "./textures.js";
@@ -16,6 +17,7 @@ const clearColor = {
 };
 const programs = {};
 const scene = [];
+const lights = [];
 
 window.init = async (canvas) => {
   // context
@@ -42,33 +44,37 @@ window.init = async (canvas) => {
     uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
-  const { indices, vertices, uvs, colors, } = geo.sphere(3);
+  const { indices, vertices, uvs, colors, } = geo.cube();
   const normals = calculateNormals(vertices, indices);
 
-  const cube = create(gl, {
+  const sphere = create(gl, {
     program: programs.default,
     indices, vertices, uvs,
     normals, colors,
     position: vec3.fromValues(0, -1, -3),
-    rotation: quat.fromEuler(quat.create(), 0, -45, 0),
-    attributes: [
-      { key: 'diffuse', name: 'aTextureCoord' },
-    ],
-    plugins: {
-      draw: [() => {
-        
-      }],
-    },
+    rotation: quat.fromEuler(quat.create(), 0, 0, 0),
   });
-  cube.textures.diffuse = await loadTextureAsync(gl,
+  sphere.textures.diffuse = await loadTextureAsync(gl,
     {
       path: 'assets/texture.png',
     });
-  cube.update = (dt) => {
-    quat.rotateY(cube.rotation, cube.rotation, 0.001 * dt);
-    //quat.rotateX(cube.rotation, cube.rotation, 0.001 * dt);
+  sphere.update = (dt) => {
+    quat.rotateY(sphere.rotation, sphere.rotation, 0.001 * dt);
+    //quat.rotateX(sphere.rotation, sphere.rotation, 0.001 * dt);
+    //quat.rotateZ(sphere.rotation, sphere.rotation, 0.001 * dt);
   };
-  scene.push(cube);
+  scene.push(sphere);
+
+  // lights
+  lights.push(ambient({
+    color: [0.5, 0.5, 0],
+    intensity: 0.5,
+  }))
+  lights.push(positional({
+    position: [3, 1, 0],
+    color: [0.8, 0.2, 0.1],
+    intensity: 0.8,
+  }));
 };
 
 window.loop = (dt, canvas) => {
@@ -105,6 +111,9 @@ const drawGraph = (node, parent, dt, P, V) => {
     gl.useProgram(program);
     {
       gl.uniformMatrix4fv(uniforms.P, false, P);
+
+      // lighting
+      prepare(gl, program, lights);
 
       draw({ program, parent, V });
     }
