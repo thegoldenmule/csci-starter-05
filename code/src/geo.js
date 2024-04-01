@@ -350,8 +350,25 @@ const geo = {
     return {
       vertices,
       indices,
+      uvs: generateUvs(vertices),
     };
   },
+};
+
+const generateUvs = (vertices) => {
+  const uvs = [];
+  for (let i = 0; i < vertices.length; i += 3) {
+    const x = vertices[i];
+    const y = vertices[i + 1];
+    const z = vertices[i + 2];
+
+    const u = 0.5 + Math.atan2(z, x) / (2 * Math.PI);
+    const v = 0.5 - Math.asin(y) / Math.PI;
+
+    uvs.push(u, v);
+  }
+
+  return uvs;
 };
 
 const subdivide = ({

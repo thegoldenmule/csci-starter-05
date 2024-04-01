@@ -44,7 +44,7 @@ window.init = async (canvas) => {
     uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
-  const { indices, vertices, uvs, colors, } = geo.cube();
+  const { indices, vertices, uvs, colors, } = geo.sphere();
   const normals = calculateNormals(vertices, indices);
 
   const sphere = create(gl, {
@@ -71,9 +71,9 @@ window.init = async (canvas) => {
     intensity: 0.5,
   }))
   lights.push(positional({
-    position: [3, 1, 0],
-    color: [0.8, 0.2, 0.1],
-    intensity: 0.8,
+    color: [0, 1, 1],
+    intensity: 1,
+    position: [1, 0, -5],
   }));
 };
 

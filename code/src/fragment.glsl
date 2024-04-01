@@ -1,5 +1,5 @@
 #version 300 es
-precision mediump float;
+precision highp float;
 
 uniform sampler2D uDiffuse;
 uniform vec2 uScroll;
@@ -13,29 +13,30 @@ out vec4 fragColor;
 
 // lighting
 const int MAX_LIGHTS = 10;
-uniform int uLightsCount;
+uniform highp int uLightsCount;
 uniform vec3 uLightsAmbient;
-
-uniform vec4 uLightsPosition[MAX_LIGHTS];
 uniform vec3 uLightsColor[MAX_LIGHTS];
+in vec4 vLightsRay[MAX_LIGHTS];
 
 void main(void) {
-  vec3 ambientColor = vec3(0.5, 0.5, 0);
-  float ambientIntensity = 0.5;
   vec3 ambientComponent = uLightsAmbient;
 
-  vec3 posLightDirection = normalize(vec3(-1, 0.25, 1));
-  vec3 posLightColor = vec3(1, 1, 1);
-  float posLightIntensity = 0.8;
-  vec3 posLightComponent = posLightColor * posLightIntensity * max(0.0, dot(vNormal, posLightDirection));
+  vec3 lightDirection = normalize(vLightsRay[0].xyz);
+  vec3 lightColor = uLightsColor[0];
 
+  vec3 diffuseComponent = lightColor * max(
+    0.0,
+    dot(vNormal, lightDirection));
+  
   vec3 eyeVector = normalize(vEyeVector);
-  vec3 reflectionVector = reflect(-posLightDirection, vNormal);
-  vec3 specularColor = vec3(1, 1, 1);
-  float specularIntensity = 0.5;
-  vec3 specularComponent = specularColor * specularIntensity * pow(max(0.0, dot(reflectionVector, eyeVector)), 16.0);
+  vec3 reflectionVector = reflect(-lightDirection, vNormal);
+  vec3 specularColor = uLightsColor[0];
+  vec3 specularComponent = specularColor * pow(max(0.0, dot(reflectionVector, eyeVector)), 16.0);
 
+  vec3 light = ambientComponent + diffuseComponent + specularComponent;
   vec3 tex = texture(uDiffuse, vTextureCoord).rgb;
-  vec3 lightColor = ambientComponent + posLightComponent + specularComponent;
-  fragColor = vec4(lightColor, 1.0);
+
+  fragColor = vec4(
+    light * tex,
+    1.0);
 }
