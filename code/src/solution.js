@@ -4,7 +4,7 @@ import { ambient, positional, prepare } from "./lighting.js";
 import { create } from "./node.js";
 import { loadShader } from "./shaders.js";
 import { loadTextureAsync } from "./textures.js";
-import { calculateNormals } from "./util.js";
+import { calculateNormals, calculateNormalsAveraged } from "./util.js";
 
 /** @type {WebGLRenderingContext} */
 let gl;
@@ -47,7 +47,7 @@ window.init = async (canvas) => {
   const empty = create(gl);
   empty.acc = 0;
   empty.update = (dt) => {
-    const speed = 0.03;
+    const speed = 0.01;
     empty.acc += dt * speed;
 
     const angle = empty.acc % 360;
@@ -58,12 +58,14 @@ window.init = async (canvas) => {
   scene.push(empty);
 
   const { indices, vertices, uvs, colors, } = geo.sphere();
-  const normals = calculateNormals(vertices, indices);
+  const normals = calculateNormalsAveraged(vertices, indices);
+  const size = 1.5;
   const sphere = create(gl, {
     program: programs.default,
     indices, vertices, uvs,
     normals, colors,
     position: vec3.fromValues(3, 0, 0),
+    scale: vec3.fromValues(size, size, size),
   });
   sphere.textures.diffuse = await loadTextureAsync(gl,
     {
@@ -71,7 +73,7 @@ window.init = async (canvas) => {
     });
   sphere.acc = 0;
   sphere.update = (dt) => {
-    sphere.acc += dt * 0.1;
+    sphere.acc += dt * 0.05;
     const angle = sphere.acc % 360;
     sphere.rotation = quat.fromEuler(
       sphere.rotation,
