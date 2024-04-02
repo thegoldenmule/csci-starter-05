@@ -87,16 +87,29 @@ window.init = async (canvas) => {
     intensity: 0.2,
   }))
 
-  //let acc = 0;
+  let acc = 0;
   const light1 = positional({
-    color: [1, 1, 1],
-    intensity: 1,
+    color: [0, 1, 0],
     position: [0, 0, 0],
-    /*update: (dt, light) => {
+    update: (dt, light) => {
       acc += 0.005 * dt;
-    },*/
+
+      light.intensity = 3.75 + 0.25 * Math.sin(acc);
+    },
   });
   lights.push(light1);
+
+  const light2 = positional({
+    color: [1, 0, 0],
+    position: [0, 0, 3],
+    intensity: 3,
+    update: (dt, light) => {
+      acc += 0.005 * dt;
+
+      //light.intensity = 0.75 + 0.25 * Math.sin(acc);
+    },
+  });
+  lights.push(light2);
 };
 
 window.loop = (dt, canvas) => {
