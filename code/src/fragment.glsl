@@ -21,19 +21,24 @@ in vec4 vLightsRay[MAX_LIGHTS];
 void main(void) {
   vec3 ambientComponent = uLightsAmbient;
 
-  vec3 lightDirection = normalize(vLightsRay[0].xyz);
-  vec3 lightColor = uLightsColor[0];
-
-  vec3 diffuseComponent = lightColor * max(
-    0.0,
-    dot(vNormal, lightDirection));
-  
+  vec3 light = vec3(0.0);
   vec3 eyeVector = normalize(vEyeVector);
-  vec3 reflectionVector = reflect(-lightDirection, vNormal);
-  vec3 specularColor = uLightsColor[0];
-  vec3 specularComponent = specularColor * pow(max(0.0, dot(reflectionVector, eyeVector)), 16.0);
+  for (int i = 0; i < uLightsCount; i++) {
+    vec3 lightDirection = normalize(vLightsRay[i].xyz);
+    vec3 lightColor = uLightsColor[i];
 
-  vec3 light = ambientComponent + diffuseComponent + specularComponent;
+    vec3 diffuseComponent = lightColor * max(
+      0.0,
+      dot(vNormal, lightDirection));
+
+    vec3 reflectionVector = reflect(-lightDirection, vNormal);
+    vec3 specularColor = uLightsColor[i];
+    vec3 specularComponent = specularColor * pow(max(0.0, dot(reflectionVector, eyeVector)), 16.0);
+
+    vec3 sublight = ambientComponent + diffuseComponent + specularComponent;
+    light += sublight;
+  }
+  
   vec3 tex = texture(uDiffuse, vTextureCoord).rgb;
 
   fragColor = vec4(

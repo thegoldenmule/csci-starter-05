@@ -44,37 +44,57 @@ window.init = async (canvas) => {
     uniforms: [{ key: 'uScroll', name: 'uScroll' }],
   });
 
+  const empty = create(gl);
+  empty.acc = 0;
+  empty.update = (dt) => {
+    const speed = 0.03;
+    empty.acc += dt * speed;
+
+    const angle = empty.acc % 360;
+    empty.rotation = quat.fromEuler(
+      empty.rotation,
+      0, angle, 0);
+  };
+  scene.push(empty);
+
   const { indices, vertices, uvs, colors, } = geo.sphere();
   const normals = calculateNormals(vertices, indices);
-
   const sphere = create(gl, {
     program: programs.default,
     indices, vertices, uvs,
     normals, colors,
-    position: vec3.fromValues(0, -1, -3),
-    rotation: quat.fromEuler(quat.create(), 0, 0, 0),
+    position: vec3.fromValues(3, 0, 0),
   });
   sphere.textures.diffuse = await loadTextureAsync(gl,
     {
       path: 'assets/texture.png',
     });
+  sphere.acc = 0;
   sphere.update = (dt) => {
-    quat.rotateY(sphere.rotation, sphere.rotation, 0.001 * dt);
-    //quat.rotateX(sphere.rotation, sphere.rotation, 0.001 * dt);
-    //quat.rotateZ(sphere.rotation, sphere.rotation, 0.001 * dt);
+    sphere.acc += dt * 0.1;
+    const angle = sphere.acc % 360;
+    sphere.rotation = quat.fromEuler(
+      sphere.rotation,
+      0, angle, 0);
   };
-  scene.push(sphere);
+  empty.children.push(sphere);
 
   // lights
   lights.push(ambient({
-    color: [0.5, 0.5, 0],
-    intensity: 0.5,
+    color: [1, 1, 1],
+    intensity: 0.2,
   }))
-  lights.push(positional({
-    color: [0, 1, 1],
+
+  //let acc = 0;
+  const light1 = positional({
+    color: [1, 1, 1],
     intensity: 1,
-    position: [1, 0, -5],
-  }));
+    position: [0, 0, 0],
+    /*update: (dt, light) => {
+      acc += 0.005 * dt;
+    },*/
+  });
+  lights.push(light1);
 };
 
 window.loop = (dt, canvas) => {
@@ -91,7 +111,7 @@ window.loop = (dt, canvas) => {
     0.1, 10000);
 
   const V = mat4.identity(mat4.create());
-  mat4.translate(V, V, [0, 0, -3]);
+  mat4.translate(V, V, [0, 0, -10]);
   mat4.rotateX(V, V, 0.05 * Math.PI);
 
   // draw roots
@@ -101,10 +121,12 @@ window.loop = (dt, canvas) => {
 };
 
 const drawGraph = (node, parent, dt, P, V) => {
-  const { program, update, draw, children, } = node;
+  const { program, update, updateTransform, draw, children, } = node;
   if (update) {
     update(dt);
   }
+
+  updateTransform({ parent, });
 
   if (program) {
     const { uniforms, } = program;
@@ -113,7 +135,7 @@ const drawGraph = (node, parent, dt, P, V) => {
       gl.uniformMatrix4fv(uniforms.P, false, P);
 
       // lighting
-      prepare(gl, program, lights);
+      prepare(gl, program, dt, V, lights);
 
       draw({ program, parent, V });
     }

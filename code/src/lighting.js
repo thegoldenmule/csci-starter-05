@@ -1,27 +1,73 @@
+const { mat4, vec3, quat } = glMatrix;
+
 export const Types = {
   Ambient: 'ambient',
   Directional: 'directional',
   Positional: 'positional',
 };
 
+const scale = vec3.fromValues(1, 1, 1);
+
+const create = ({
+  type, update, direction, color, intensity,
+  position = vec3.create(),
+  rotation = quat.create(), }) => {
+  const M = mat4.create();
+  const MV = mat4.create();
+  
+  const light = {
+    type, direction, color, intensity, position, rotation,
+    children: [],
+    _MV: MV,
+    update: (params) => {
+      const { dt, V, parent, } = params;
+
+      // update transform
+      mat4.fromRotationTranslationScale(
+        M,
+        light.rotation,
+        light.position,
+        scale,
+      );
+
+      if (parent) {
+        mat4.multiply(M, parent.transform, M);
+      }
+
+      mat4.multiply(MV, V, M);
+
+      if (update) {
+        update(dt, light);
+      }
+
+      return MV;
+    },
+  };
+
+  return light;
+};
+
 export const ambient = ({
   color = [1, 1, 1],
   intensity = 0.1,
-}) => ({ type: Types.Ambient, color, intensity });
+  update,
+}) => create({ type: Types.Ambient, update, color, intensity });
 
 export const directional = ({
   color = [1, 1, 1],
   intensity = 0.5,
   direction = [0, 0, -1],
-}) => ({ type: Types.Directional, color, intensity, direction });
+  update,
+}) => create({ type: Types.Directional, update, color, intensity, direction });
 
 export const positional = ({
   color = [1, 1, 1],
   intensity = 0.8,
   position = [0, 0, 0],
-}) => ({ type: Types.Positional, color, intensity, position, });
+  update,
+}) => create({ type: Types.Positional, update, color, intensity, position });
 
-export const prepare = (gl, program, lights) => {
+export const prepare = (gl, program, dt, V, lights) => {
 
   // prepare lighting information
   const ambient = [0, 0, 0];
@@ -31,7 +77,11 @@ export const prepare = (gl, program, lights) => {
   const colors = [];
 
   for (let i = 0, len = lights.length; i < len; i++) {
-    const { type, position, direction, color, intensity, } = lights[i];
+    const light = lights[i];
+    const MV = light.update({ dt, V, parent: null, });
+
+    const { type, position: pBefore, direction, color, intensity, } = light;
+    const position = vec3.transformMat4(vec3.create(), pBefore, MV);
 
     switch (type) {
       case Types.Ambient: {
@@ -42,6 +92,8 @@ export const prepare = (gl, program, lights) => {
       }
       case Types.Positional: {
         lightCount += 1;
+
+        // multiply
 
         positions.push(
           position[0],

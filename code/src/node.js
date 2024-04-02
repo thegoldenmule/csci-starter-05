@@ -7,7 +7,7 @@ export const create = (gl, {
   rotation = quat.create(),
   update,
   indices, vertices, uvs, colors, normals,
-}) => {
+} = {}) => {
   const M = mat4.create();
   const MV = mat4.create();
   const K = mat4.create();
@@ -83,8 +83,8 @@ export const create = (gl, {
     geo,
     transform: M,
     children: [],
-    draw: (params) => {
-      const { program, V, parent, } = params;
+    updateTransform: (params) => {
+      const { parent, } = params;
       mat4.fromRotationTranslationScale(
         M,
         node.rotation,
@@ -96,6 +96,9 @@ export const create = (gl, {
       if (parent) {
         mat4.multiply(M, parent.transform, M);
       }
+    },
+    draw: (params) => {
+      const { program, V, } = params;
 
       // draw self
       if (program && vbo && ibo) {

@@ -32,10 +32,9 @@ void main(void) {
   vEyeVector = -v.xyz;
 
   for (int i = 0; i < uLightsCount; i++) {
-    vec4 lightPosition = vec4(
-      uLightsPosition[i].xyz, 1.0);
+    vec4 lightPosition = vec4(uLightsPosition[i].xyz, 1.0);
     vLightsRay[i] = vec4(
-      (v - lightPosition).xyz,
+      (lightPosition - v).xyz,
       uLightsPosition[i].w);
   }
 
